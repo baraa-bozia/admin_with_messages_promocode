@@ -1,7 +1,9 @@
 {
-  "buildCommand": "pnpm build",
-  "outputDirectory": "dist",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
+    "buildCommand": "pnpm build",
+    "outputDirectory": "client/dist",
+    "framework": "vite",
+    "rewrites": [
+      { "source": "/(.*)", "destination": "/index.html" }
+    ]
+  }
+  
