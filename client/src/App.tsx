@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Orders from "./pages/Orders";
 import Coupons from "./pages/Coupons";
+import HeroImages from "./pages/HeroImages";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/users" component={Users} />
       <Route path="/orders" component={Orders} />
       <Route path="/coupons" component={Coupons} />
+      <Route path="/hero-images" component={HeroImages} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

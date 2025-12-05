@@ -42,7 +42,7 @@ interface Order {
   Customer_Name: string;
   Customer_Email: string;
   Customer_Phone: string;
-  Status: 'pending' | 'confirmed' | 'shipping' | 'delivered' | 'cancelled';
+  Status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
   Payment_Method: 'visa' | 'cash';
   Payment_Status: 'pending' | 'paid' | 'refunded';
   Items_Count: number;
@@ -68,11 +68,30 @@ export default function Orders() {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [fullOrder, setFullOrder] = useState<any>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    if (isDetailsDialogOpen && selectedOrder) {
+      const fetchFullOrder = async () => {
+        setLoadingDetails(true);
+        try {
+          const res = await ordersAPI.getById(selectedOrder.Order_ID);
+          setFullOrder(res.data.order);
+        } catch (err) {
+          toast.error('Failed to load order details');
+        } finally {
+          setLoadingDetails(false);
+        }
+      };
+      fetchFullOrder();
+    }
+  }, [isDetailsDialogOpen, selectedOrder]);
 
   useEffect(() => {
     let filtered = orders;
@@ -99,6 +118,7 @@ export default function Orders() {
       setLoading(true);
       const res = await ordersAPI.getAll();
       const data = res.data || res;
+      console.log(data)
       setOrders(data);
       setFilteredOrders(data);
     } catch (error: any) {
@@ -136,7 +156,7 @@ export default function Orders() {
     const map: Record<string, any> = {
       pending: { variant: 'secondary', label: 'Pending' },
       confirmed: { variant: 'default', label: 'Confirmed' },
-      shipped: { variant: 'default', label: 'Shipping' },
+      shipped: { variant: 'default', label: 'Shipped' },
       delivered: { variant: 'outline', label: 'Delivered' },
       cancelled: { variant: 'destructive', label: 'Cancelled' },
     };
@@ -183,7 +203,7 @@ export default function Orders() {
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="shipping">Shipping</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
                   <SelectItem value="delivered">Delivered</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
@@ -237,7 +257,7 @@ export default function Orders() {
                             <SelectContent>
                               <SelectItem value="pending">Pending</SelectItem>
                               <SelectItem value="confirmed">Confirmed</SelectItem>
-                              <SelectItem value="shipping">Shipping</SelectItem>
+                              <SelectItem value="shipped">Shipped</SelectItem>
                               <SelectItem value="delivered">Delivered</SelectItem>
                               <SelectItem value="cancelled">Cancelled</SelectItem>
                             </SelectContent>
@@ -279,7 +299,7 @@ export default function Orders() {
 
         {/* View Details Dialog */}
         <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Order Details — {selectedOrder?.Order_Number}</DialogTitle>
             </DialogHeader>
@@ -302,6 +322,56 @@ export default function Orders() {
                       <p><span className="text-muted-foreground">Tracking:</span> {selectedOrder.Tracking_Number}</p>
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-3">Order Items</h3>
+                  {loadingDetails ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : fullOrder?.items?.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Image</TableHead>
+                          <TableHead>Product</TableHead>
+                          <TableHead>Color</TableHead>
+                          <TableHead>Size</TableHead>
+                          <TableHead>Quantity</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead>Total</TableHead>
+                          <TableHead>External Link</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {fullOrder.items.map((item: any) => (
+                          <TableRow key={item._id}>
+                            <TableCell>
+                              <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
+                            </TableCell>
+                            <TableCell className="max-w-md truncate" title={item.name}>{item.name}</TableCell>
+                            <TableCell>{item.color || 'N/A'}</TableCell>
+                            <TableCell>{item.size || 'N/A'}</TableCell>
+                            <TableCell>{item.quantity}</TableCell>
+                            <TableCell>{item.price.toFixed(2)} {selectedOrder.Currency}</TableCell>
+                            <TableCell>{item.total.toFixed(2)} {selectedOrder.Currency}</TableCell>
+                            <TableCell>
+                              {item.externalUrl ? (
+                                <a href={item.externalUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                  View on Shein
+                                </a>
+                              ) : (
+                                'N/A'
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <p className="text-muted-foreground">No items found</p>
+                  )}
                 </div>
 
                 <div>

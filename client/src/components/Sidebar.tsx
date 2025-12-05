@@ -7,6 +7,7 @@ import {
   ShoppingCart, 
   Tag, 
   LogOut,
+  Image,
   Menu,
   X
 } from 'lucide-react';
@@ -19,6 +20,7 @@ const navigation = [
   { name: 'Users', href: '/users', icon: Users },
   { name: 'Orders', href: '/orders', icon: ShoppingCart },
   { name: 'Coupons', href: '/coupons', icon: Tag },
+  { name: 'Hero Images', href: '/hero-images', icon: Image },
 ];
 
 export default function Sidebar() {
