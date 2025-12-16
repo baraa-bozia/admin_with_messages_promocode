@@ -99,6 +99,16 @@ export const ordersAPI = {
     const response = await api.delete(`/orders/${id}`);
     return response.data;
   },
+  getAdminOrderById:async (orderId: string) => {
+ const response = await api.get(`/orders/admin/${orderId}`);
+    return response.data;
+
+    // افترض أن ordersAPI يستخدم Axios أو Fetch
+    // return axios.get(`/orders/admin/${orderId}`); 
+  },
+  // getByIdAdmin: (id: string) =>
+  // axios.get(`/orders/admin/${id}`)
+
 };
 
 // Coupons API
@@ -171,3 +181,47 @@ export const heroImagesAPI = {
     return response.data;
   },
 };
+
+
+// Revenue API (Admin Dashboard)
+export const revenueAPI = {
+  get: async () => {
+    const response = await api.get('/orders/admin/revenue');
+    return response.data;
+  },
+};
+// // Statistics API
+// export const statsAPI = {
+//   getDashboard: async () => {
+//     const response = await api.get('/stats/dashboard');
+//     return response.data;
+//   },
+// };
+
+// // HERO IMAGES API — FULLY FIXED FOR FILE UPLOADS
+// export const heroImagesAPI = {
+//   getAll: async () => {
+//     const response = await api.get('/hero-images');
+//     return response.data;
+//   },
+
+//   // Create with image upload
+//   create: async (formData: FormData) => {
+//     const response = await api.post('/hero-images', formData);
+//     return response.data;
+//   },
+
+//   // Update (supports replacing image)
+//   update: async (id: string, formData: FormData) => {
+//     const response = await api.put(`/hero-images/${id}`, formData);
+//     return response.data;
+//   },
+
+//   delete: async (id: string) => {
+//     const response = await api.delete(`/hero-images/${id}`);
+//     return response.data;
+//   },
+// };
+
+
+

@@ -81,10 +81,18 @@ export default function Orders() {
       const fetchFullOrder = async () => {
         setLoadingDetails(true);
         try {
-          const res = await ordersAPI.getById(selectedOrder.Order_ID);
-          setFullOrder(res.data.order);
+          // هاد بضيفه لما اضيف /admin/:orderId بالباك اند 
+          // وبعلق السطر اللي تحته
+          const res = await ordersAPI.getAdminOrderById(selectedOrder.Order_ID);
+
+          // const res = await ordersAPI.getById(selectedOrder.Order_ID);
+          // setFullOrder(res.data.order);
+          setFullOrder(res.data?.order || res.order);
+
         } catch (err) {
           toast.error('Failed to load order details');
+          console.log(selectedOrder.Order_ID);
+console.log(err);
         } finally {
           setLoadingDetails(false);
         }
@@ -92,6 +100,34 @@ export default function Orders() {
       fetchFullOrder();
     }
   }, [isDetailsDialogOpen, selectedOrder]);
+
+// useEffect(() => {
+//   if (isDetailsDialogOpen && selectedOrder) {
+//     const fetchFullOrder = async () => {
+//       setLoadingDetails(true);
+//       try {
+//         const res = await ordersAPI.getById(selectedOrder.Order_ID);
+
+//         // افحص مكان وجود الـ order في الـ response
+//         const orderData = res.data?.order || res?.data?.order || res?.order;
+
+//         if (!orderData) {
+//           throw new Error('Order not found or access denied');
+//         }
+
+//         setFullOrder(orderData);
+
+//       } catch (err) {
+//         toast.error('Failed to load order details');
+//         console.log('Order fetch error:', err);
+//       } finally {
+//         setLoadingDetails(false);
+//       }
+//     };
+
+//     fetchFullOrder();
+//   }
+// }, [isDetailsDialogOpen, selectedOrder]);
 
   useEffect(() => {
     let filtered = orders;
