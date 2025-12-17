@@ -333,7 +333,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   return (
-    <DashboardLayout>
+    <>
 <div className="space-y-6">
           <div className="flex items-center justify-between">
           <div>
@@ -736,6 +736,6 @@ const handleSubmit = async (e: React.FormEvent) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }
