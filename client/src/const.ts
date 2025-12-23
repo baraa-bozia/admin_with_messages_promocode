@@ -21,4 +21,4 @@ export const getLoginUrl = () => {
 };
 
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://192.168.1.7:5000/api";
+export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://192.168.1.9:5000/api";

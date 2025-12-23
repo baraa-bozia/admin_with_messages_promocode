@@ -23,8 +23,11 @@ const navigation = [
   { name: 'Hero Images', href: '/hero-images', icon: Image },
   { name: 'Messages', href: '/messages', icon: Image },
   { name: 'Promo Codes', href: '/promo', icon: Image },
+  { name: 'Shein Products', href: '/shein-products', icon: Image },
+  { name: 'Add New Product', href: '/products', icon: Image },
 
 
+  
 ];
 
 export default function Sidebar() {

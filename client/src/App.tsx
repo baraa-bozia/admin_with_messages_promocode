@@ -15,6 +15,10 @@ import HeroImages from "./pages/HeroImages";
 import Messages from "./pages/Messages";
 import DashboardLayout from "./components/DashboardLayout";
 import PromoCodes from "./pages/PromoCodes";
+import RevenuePage from "./pages/RevenuePage";
+import SheinProductsPage from "./pages/SheinProductsPage";
+import NewProduct from "./pages/NewProduct";
+
 
 function Router() {
   return (
@@ -25,6 +29,7 @@ function Router() {
       <Route path="/users" component={Users} />
       <Route path="/orders" component={Orders} />
       <Route path="/coupons" component={Coupons} />
+
       {/* <Route path="/hero-images" component={HeroImages} /> */}
        <Route path="/hero-images">
         <DashboardLayout>
@@ -42,10 +47,16 @@ function Router() {
           <PromoCodes />
         </DashboardLayout>
       </Route>
+      <Route path="/revenue" component={RevenuePage } />
+      <Route path="/shein-products" component={SheinProductsPage } />
+      <Route path="/products" component={NewProduct } />
+
+
 
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
+
     </Switch>
   );
 }

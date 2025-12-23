@@ -181,6 +181,29 @@ export const heroImagesAPI = {
     return response.data;
   },
 };
+export const productImagesAPI = {
+  getAll: async () => {
+    const response = await api.get('/product-images');
+    return response.data;
+  },
+
+  // Create with image upload
+  create: async (formData: FormData) => {
+    const response = await api.post('/product-images', formData);
+    return response.data;
+  },
+
+  // Update (supports replacing image)
+  update: async (id: string, formData: FormData) => {
+    const response = await api.put(`/product-images/${id}`, formData);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/product-images/${id}`);
+    return response.data;
+  },
+};
 
 
 // Revenue API (Admin Dashboard)

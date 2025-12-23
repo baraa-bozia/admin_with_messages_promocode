@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import EditMessage from '@/components/EditMessage';
 import Select, { components,StylesConfig, MultiValue } from 'react-select';
 import axios from 'axios';
+import { useNavigate } from "react-router-dom";
+import DashboardProducts from './ShowProd';
 
 export default function Dashboard() {
 interface DashboardStats {
@@ -26,6 +28,7 @@ interface Order {
   pricing?: { total: number };
 }
 
+    const navigate = useNavigate();
 
 
   const [stats, setStats] = useState({
@@ -186,40 +189,234 @@ console.log("orderTrendsData:", orderTrendsData);
 
     setOrderTrends(orderTrendsData);
 
-//revenue in chart
+// //revenue in chart
+// const revenueData = Array.from({ length: monthsToShow }, (_, i) => {
+//   const monthIndex = (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
+
+//   const revenueInMonth = ordersData.data
+//     .filter((order: any) => {
+//       const [datePart] = order.Order_Date.split(',');
+//       const [day, month, year] = datePart.split('/').map(Number);
+
+//       const orderDate = new Date(year, month - 1, day);
+//        return (
+//         orderDate.getMonth() === monthIndex &&
+//         order.Status === 'delivered' 
+//       );
+//     })
+//     .reduce(
+//       (sum: number, order: { Total_Amount: number }) =>
+//         sum + (Number(order.Total_Amount) || 0),
+//       0
+//     );
+
+//   return {
+//     month: monthName(monthIndex),
+//     revenue: revenueInMonth
+//   };
+// });
+
+// console.log("revenueData:", revenueData);
+// setRevenueData(revenueData);
+
+
+
+
+
+
+// const revenueData = Array.from({ length: monthsToShow }, (_, i) => {
+//   const monthIndex =
+//     (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
+
+//   const ordersInMonth = ordersData.data.filter((order: any) => {
+//     const [datePart] = order.Order_Date.split(",");
+//     const [day, month, year] = datePart.split("/").map(Number);
+//     const orderDate = new Date(year, month - 1, day);
+
+//     return orderDate.getMonth() === monthIndex;
+//   });
+
+//   const deliveredOrders = ordersInMonth.filter(
+//     (o: any) => o.Status === "delivered"
+//   );
+
+//   const pendingOrders = ordersInMonth.filter(
+//     (o: any) => o.Status === "pending"
+//   );
+
+//   const revenue = deliveredOrders.reduce(
+//     (sum: number, order: any) =>
+//       sum + (Number(order.Total_Amount) || 0),
+//     0
+//   );
+// console.log(
+//   "Statuses:",
+//   ordersInMonth.map((o: any) => o.Status)
+// );
+//   return {
+//     month: monthName(monthIndex),
+//     revenue,
+//     totalOrders: ordersInMonth.length,
+//     deliveredOrders: deliveredOrders.length,
+//     pendingOrders: pendingOrders.length,
+//   };
+// });
+
+// setRevenueData(revenueData);
+
+// const buildMonthlyStats = (orders: any[], monthsToShow = 6) => {
+//   const now = new Date();
+//   const currentMonth = now.getMonth();
+//   const currentYear = now.getFullYear();
+
+//   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+//   return Array.from({ length: monthsToShow }, (_, i) => {
+//     const monthIndex = (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
+
+//     const ordersInMonth = orders.filter((o) => {
+//       if (!o.Order_Date) return false;
+
+//       const [datePart] = o.Order_Date.split(',');
+//       const [day, month, year] = datePart.split('/').map(Number);
+//       const d = new Date(year, month - 1, day);
+
+//       return (
+//         d.getMonth() === monthIndex &&
+//         d.getFullYear() === currentYear
+//       );
+//     });
+
+//     const delivered = ordersInMonth.filter(
+//       o => o.Status?.toLowerCase().trim() === "delivered"
+//     );
+
+//     const pending = ordersInMonth.filter(
+//       o => o.Status?.toLowerCase().trim() === "pending"
+//     );
+
+//     return {
+//       month: months[monthIndex],
+//       totalOrders: ordersInMonth.length,
+//       deliveredOrders: delivered.length,
+//       pendingOrders: pending.length,
+//       revenue: delivered.reduce(
+//         (sum, o) => sum + (Number(o.Total_Amount) || 0),
+//         0
+//       )
+//     };
+//   });
+// };
+// const monthlyStats = buildMonthlyStats(ordersData.data);
+
+// setRevenueData(
+//   monthlyStats.map(m => ({
+//     month: m.month,
+//     revenue: m.revenue,
+//     deliveredOrders: m.deliveredOrders,
+//     pendingOrders: m.pendingOrders,
+//     totalOrders: m.totalOrders
+//   }))
+// );
+
+
+
+
+// هاااااااااااااااااااااااااااااااد الصح 
+// revenue + delivered orders in chart
+// const revenueData = Array.from({ length: monthsToShow }, (_, i) => {
+//   const monthIndex = (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
+
+//   // فلترة الأوردرز اللي بالشهر الحالي وتم توصيلها
+//   const deliveredOrdersInMonth = ordersData.data.filter((order: any) => {
+//     const [datePart] = order.Order_Date.split(',');
+//     const [day, month, year] = datePart.split('/').map(Number);
+//     const orderDate = new Date(year, month - 1, day);
+//     return orderDate.getMonth() === monthIndex && order.Status === 'delivered';
+//   });
+
+//   const revenueInMonth = deliveredOrdersInMonth.reduce(
+//     (sum: number, order: any) => sum + (Number(order.Total_Amount) || 0),
+//     0
+//   );
+  
+
+//   return {
+//     month: monthName(monthIndex),
+//     revenue: revenueInMonth,
+//     deliveredOrders: deliveredOrdersInMonth.length, // عدد الأوردرز اللي تم توصيلها
+//   };
+// });
+
+// console.log("revenueData with deliveredOrders:", revenueData);
+// setRevenueData(revenueData);
+
+
 const revenueData = Array.from({ length: monthsToShow }, (_, i) => {
   const monthIndex = (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
 
-  const revenueInMonth = ordersData.data
-    .filter((order: any) => {
-      const [datePart] = order.Order_Date.split(',');
-      const [day, month, year] = datePart.split('/').map(Number);
+  // Delivered Orders
+  const deliveredOrdersInMonth = ordersData.data.filter((order: any) => {
+    const [datePart] = order.Order_Date.split(',');
+    const [day, month, year] = datePart.split('/').map(Number);
+    const orderDate = new Date(year, month - 1, day);
+    return orderDate.getMonth() === monthIndex && order.Status === 'delivered';
+  });
 
-      const orderDate = new Date(year, month - 1, day);
-       return (
-        orderDate.getMonth() === monthIndex &&
-        order.Status === 'delivered' 
-      );
-    })
-    .reduce(
-      (sum: number, order: { Total_Amount: number }) =>
-        sum + (Number(order.Total_Amount) || 0),
-      0
-    );
+  // Pending Orders
+  const pendingOrdersInMonth = ordersData.data.filter((order: any) => {
+    const [datePart] = order.Order_Date.split(',');
+    const [day, month, year] = datePart.split('/').map(Number);
+    const orderDate = new Date(year, month - 1, day);
+    return orderDate.getMonth() === monthIndex && order.Status === 'pending';
+  });
+// Cancelled Orders
+  const cancelledOrdersInMonth = ordersData.data.filter((order: any) => {
+    const [datePart] = order.Order_Date.split(',');
+    const [day, month, year] = datePart.split('/').map(Number);
+    const orderDate = new Date(year, month - 1, day);
+    return orderDate.getMonth() === monthIndex && order.Status === 'cancelled';
+  });
+
+const deliveryFeesIncome = deliveredOrdersInMonth.reduce(
+  (total: number, order: any) => total + (order.Shipping || 0),
+  0
+);
+
+console.log("Total delivery fees income:", deliveryFeesIncome);
+
+ 
+
+  const revenueInMonth = deliveredOrdersInMonth.reduce(
+    (sum: number, order: any) => sum + (Number(order.Total_Amount) || 0),
+    0
+  );
+      console.log("pendingggg",pendingOrdersInMonth.length);
+            console.log("cancelled",cancelledOrdersInMonth.length);
+
 
   return {
     month: monthName(monthIndex),
-    revenue: revenueInMonth
+        year: new Date().getFullYear(), // أضف السنة هنا
+
+    revenue: revenueInMonth,
+    deliveredOrders: deliveredOrdersInMonth.length,
+    pendingOrders: pendingOrdersInMonth.length, // هاذه عدد الطلبات المعلقة
+    cancelledOrders: cancelledOrdersInMonth.length,
+    deliveryFeesIncome: deliveryFeesIncome,
   };
 });
-
-console.log("revenueData:", revenueData);
 setRevenueData(revenueData);
 
-      const pendingOrdersCount = ordersArray.filter((order: any) => order.status === 'pending').length;
+
+
+      // const pendingOrdersCount = ordersData.data.filter((order: any) => order.Status === 'pending').length;
+      // console.log("pending",pendingOrdersCount);
       const totalRevenue = ordersArray.reduce((sum: number, order: any) => sum + (order.pricing?.total || 0), 0);
     
       const activeUsersCount = usersArray.filter((user: any) => user.isActive).length;
+
+
       // const totalRevenue = ordersData.data.reduce((sum: number, order: any) => sum + (order.Total_Amount || 0), 0);
       // console.log("total",totalRevenue);
       //++++
@@ -320,7 +517,19 @@ useEffect(() => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard title="Total Users" value={stats.totalUsers} icon={Users} description={`${stats.activeUsers} active users`} trend={{ value: 12, isPositive: true }} />
           <StatCard title="Total Orders" value={stats.totalOrders} icon={ShoppingCart} description={`${stats.pendingOrders} pending orders`} trend={{ value: 8, isPositive: true }} />
-          <StatCard title="Monthly Revenue" value={`₪${monthlyRevenue.toFixed(2)}`} icon={DollarSign} description="Revenue for current month" trend={{ value: 15, isPositive: true }} />
+           <div
+      // onClick={() => navigate("/revenue",{ state: { revenueData: revenueData, orderTrends: orderTrends } })}
+            onClick={() =>  navigate("/revenue", {
+  state: { revenueData ,orderTrends}
+})}
+
+     
+
+      style={{ cursor: "pointer" }}
+      className="stat-card"
+    >
+          <StatCard title="Monthly Revenue" value={`₪${monthlyRevenue.toFixed(2)}`} icon={DollarSign} description="Revenue for current month" trend={{ value: 15, isPositive: true }}  />
+         </div>
           <StatCard title="Active Coupons" value={activeCoupons} icon={Tag} description="Currently available" />
 
           {/* <StatCard title="Active Coupons" value={stats.totalCoupons} icon={Tag} description="Currently available" /> */}
@@ -371,6 +580,7 @@ useEffect(() => {
        
       </div>
         {/* <PromoCodes /> */}
+        {/* <DashboardProducts/> */}
 </>
     )}
     </DashboardLayout>

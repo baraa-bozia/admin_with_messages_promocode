@@ -14,6 +14,7 @@ interface StatCardProps {
 }
 
 export default function StatCard({ title, value, icon: Icon, description, trend }: StatCardProps) {
+
   return (
     <Card className="border-2 hover:shadow-lg transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
