@@ -1,3 +1,6 @@
+
+
+
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import StatCard from '@/components/StatCard';
@@ -30,12 +33,28 @@ interface Order {
 
     const navigate = useNavigate();
 
+ const [loading, setLoading] = useState(true);
+const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [usersMap, setUsersMap] = useState<{ [key: string]: string }>({});
+  const [messages, setMessages] = useState<any[]>([]);
+  const [messageContent, setMessageContent] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+const [activeCoupons, setActiveCoupons] = useState<number>(0);
+
+const [orderTrends, setOrderTrends] = useState<{ month: string; orders: number }[]>([]);
+const [revenueData, setRevenueData] = useState<{ month: string; revenue: number }[]>([]);
+
+const [usersTrend, setUsersTrend] = useState<{ value: number; isPositive: boolean }>({ value: 0, isPositive: true });
+const [ordersTrend, setOrdersTrend] = useState<{ value: number; isPositive: boolean }>({ value: 0, isPositive: true });
+const [revenueTrend, setRevenueTrend] = useState<{ value: number; isPositive: boolean }>({ value: 0, isPositive: true });
+
 
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalOrders: 0,
-    totalCoupons: 0, //activeCoupons هي نفسها 
-    // activeCoupons:0,
+    totalCoupons: 0, 
     totalRevenue: 0,
     // monthlyRevenue: 0,  حذفتها من هون لانه قيمتها مش راجعة من API فعملتها منفصلة 
     pendingOrders: 0,
@@ -68,21 +87,7 @@ setStats(rest);
     useEffect(() => {
         fetchDashboardStats();
     }, []);
-  const [loading, setLoading] = useState(true);
-const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-// const [editingPromoId, setEditingPromoId] = useState<string | null>(null);
-
-  const [usersList, setUsersList] = useState<any[]>([]);
-  const [usersMap, setUsersMap] = useState<{ [key: string]: string }>({});
-  const [messages, setMessages] = useState<any[]>([]);
-  const [messageContent, setMessageContent] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  // const [totalCoupons, setTotalCoupons] = useState([]);
-  // const [activeCoupons, setActiveCoupons] = useState<any[]>([]);
-const [activeCoupons, setActiveCoupons] = useState<number>(0);
-
-const [orderTrends, setOrderTrends] = useState<{ month: string; orders: number }[]>([]);
-const [revenueData, setRevenueData] = useState<{ month: string; revenue: number }[]>([]);
+ 
 
 
   // ======================= Fetch Dashboard Stats =======================
@@ -97,7 +102,6 @@ const [revenueData, setRevenueData] = useState<{ month: string; revenue: number 
     try {
 
       // setLoading(true);
-          if (!stats.totalUsers) setLoading(true); //استخدمته لحل مشكلة التحديث
   const couponsData = await couponsAPI.getAll();
     // const couponsArray = couponsData.data?.coupons || [];
           const couponsArray = couponsData.data?.coupons || couponsData.data || [];
@@ -121,11 +125,6 @@ console.log("ordersArray:", ordersArray); // هون بتطبع فاضية لاز
       const usersArray = usersData.data?.users || usersData.data || [];
       // const couponsArray = couponsData.data?.coupons || couponsData.data || [];
 // =================== Charts ===================
-
-    // const ordersData = await ordersAPI.getAll();
-    // const ordersArray = ordersData.data?.orders || [];
-    
-
 
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth(); // 0-11
@@ -189,168 +188,6 @@ console.log("orderTrendsData:", orderTrendsData);
 
     setOrderTrends(orderTrendsData);
 
-// //revenue in chart
-// const revenueData = Array.from({ length: monthsToShow }, (_, i) => {
-//   const monthIndex = (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
-
-//   const revenueInMonth = ordersData.data
-//     .filter((order: any) => {
-//       const [datePart] = order.Order_Date.split(',');
-//       const [day, month, year] = datePart.split('/').map(Number);
-
-//       const orderDate = new Date(year, month - 1, day);
-//        return (
-//         orderDate.getMonth() === monthIndex &&
-//         order.Status === 'delivered' 
-//       );
-//     })
-//     .reduce(
-//       (sum: number, order: { Total_Amount: number }) =>
-//         sum + (Number(order.Total_Amount) || 0),
-//       0
-//     );
-
-//   return {
-//     month: monthName(monthIndex),
-//     revenue: revenueInMonth
-//   };
-// });
-
-// console.log("revenueData:", revenueData);
-// setRevenueData(revenueData);
-
-
-
-
-
-
-// const revenueData = Array.from({ length: monthsToShow }, (_, i) => {
-//   const monthIndex =
-//     (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
-
-//   const ordersInMonth = ordersData.data.filter((order: any) => {
-//     const [datePart] = order.Order_Date.split(",");
-//     const [day, month, year] = datePart.split("/").map(Number);
-//     const orderDate = new Date(year, month - 1, day);
-
-//     return orderDate.getMonth() === monthIndex;
-//   });
-
-//   const deliveredOrders = ordersInMonth.filter(
-//     (o: any) => o.Status === "delivered"
-//   );
-
-//   const pendingOrders = ordersInMonth.filter(
-//     (o: any) => o.Status === "pending"
-//   );
-
-//   const revenue = deliveredOrders.reduce(
-//     (sum: number, order: any) =>
-//       sum + (Number(order.Total_Amount) || 0),
-//     0
-//   );
-// console.log(
-//   "Statuses:",
-//   ordersInMonth.map((o: any) => o.Status)
-// );
-//   return {
-//     month: monthName(monthIndex),
-//     revenue,
-//     totalOrders: ordersInMonth.length,
-//     deliveredOrders: deliveredOrders.length,
-//     pendingOrders: pendingOrders.length,
-//   };
-// });
-
-// setRevenueData(revenueData);
-
-// const buildMonthlyStats = (orders: any[], monthsToShow = 6) => {
-//   const now = new Date();
-//   const currentMonth = now.getMonth();
-//   const currentYear = now.getFullYear();
-
-//   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-//   return Array.from({ length: monthsToShow }, (_, i) => {
-//     const monthIndex = (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
-
-//     const ordersInMonth = orders.filter((o) => {
-//       if (!o.Order_Date) return false;
-
-//       const [datePart] = o.Order_Date.split(',');
-//       const [day, month, year] = datePart.split('/').map(Number);
-//       const d = new Date(year, month - 1, day);
-
-//       return (
-//         d.getMonth() === monthIndex &&
-//         d.getFullYear() === currentYear
-//       );
-//     });
-
-//     const delivered = ordersInMonth.filter(
-//       o => o.Status?.toLowerCase().trim() === "delivered"
-//     );
-
-//     const pending = ordersInMonth.filter(
-//       o => o.Status?.toLowerCase().trim() === "pending"
-//     );
-
-//     return {
-//       month: months[monthIndex],
-//       totalOrders: ordersInMonth.length,
-//       deliveredOrders: delivered.length,
-//       pendingOrders: pending.length,
-//       revenue: delivered.reduce(
-//         (sum, o) => sum + (Number(o.Total_Amount) || 0),
-//         0
-//       )
-//     };
-//   });
-// };
-// const monthlyStats = buildMonthlyStats(ordersData.data);
-
-// setRevenueData(
-//   monthlyStats.map(m => ({
-//     month: m.month,
-//     revenue: m.revenue,
-//     deliveredOrders: m.deliveredOrders,
-//     pendingOrders: m.pendingOrders,
-//     totalOrders: m.totalOrders
-//   }))
-// );
-
-
-
-
-// هاااااااااااااااااااااااااااااااد الصح 
-// revenue + delivered orders in chart
-// const revenueData = Array.from({ length: monthsToShow }, (_, i) => {
-//   const monthIndex = (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
-
-//   // فلترة الأوردرز اللي بالشهر الحالي وتم توصيلها
-//   const deliveredOrdersInMonth = ordersData.data.filter((order: any) => {
-//     const [datePart] = order.Order_Date.split(',');
-//     const [day, month, year] = datePart.split('/').map(Number);
-//     const orderDate = new Date(year, month - 1, day);
-//     return orderDate.getMonth() === monthIndex && order.Status === 'delivered';
-//   });
-
-//   const revenueInMonth = deliveredOrdersInMonth.reduce(
-//     (sum: number, order: any) => sum + (Number(order.Total_Amount) || 0),
-//     0
-//   );
-  
-
-//   return {
-//     month: monthName(monthIndex),
-//     revenue: revenueInMonth,
-//     deliveredOrders: deliveredOrdersInMonth.length, // عدد الأوردرز اللي تم توصيلها
-//   };
-// });
-
-// console.log("revenueData with deliveredOrders:", revenueData);
-// setRevenueData(revenueData);
-
 
 const revenueData = Array.from({ length: monthsToShow }, (_, i) => {
   const monthIndex = (currentMonth - (monthsToShow - 1 - i) + 12) % 12;
@@ -409,17 +246,11 @@ console.log("Total delivery fees income:", deliveryFeesIncome);
 setRevenueData(revenueData);
 
 
-
-      // const pendingOrdersCount = ordersData.data.filter((order: any) => order.Status === 'pending').length;
-      // console.log("pending",pendingOrdersCount);
       const totalRevenue = ordersArray.reduce((sum: number, order: any) => sum + (order.pricing?.total || 0), 0);
     
       const activeUsersCount = usersArray.filter((user: any) => user.isActive).length;
 
 
-      // const totalRevenue = ordersData.data.reduce((sum: number, order: any) => sum + (order.Total_Amount || 0), 0);
-      // console.log("total",totalRevenue);
-      //++++
       // const activeCoupons = usersArray.filter((user: any) => user.isActive).length;
 // هاي ما بتلزم , انا بجيب البيانات من API
 //في setStatsفوق 
@@ -435,6 +266,56 @@ setRevenueData(revenueData);
 
       // const activeCoupons = usersArray.filter((coupon: any) => new Date(coupon.expires) > new Date());
       // setTotalCoupons(couponsArray.length);
+
+      //تحديث نسبة المستخدمين مع الشهر السابق 
+      const currentMonthUsers = usersArray.filter((u: any) => {
+      const createdDate = new Date(u.createdAt);
+      return createdDate.getMonth() === new Date().getMonth();
+       }).length;
+
+      const lastMonthUsers = usersArray.filter((u: any) => {
+      const createdDate = new Date(u.createdAt);
+      const lastMonth = (new Date().getMonth() - 1 + 12) % 12;
+      return createdDate.getMonth() === lastMonth;
+      }).length;
+
+      const usersTrendValue = lastMonthUsers === 0 ? 100 : Math.round(((currentMonthUsers - lastMonthUsers) / lastMonthUsers) * 100);
+      setUsersTrend({ value: Math.abs(usersTrendValue), isPositive: usersTrendValue >= 0 });
+
+
+      //تحديث نسبة الاوردر مع الشهر السابق 
+      const currentMonthOrders = ordersData.data.filter((order: any) => {
+      const [day, month, year] = order.Order_Date.split(',')[0].split('/').map(Number);
+      const orderDate = new Date(year, month - 1, day);
+      return orderDate.getMonth() === currentMonth;
+      }).length;
+
+     const lastMonth = (currentMonth - 1 + 12) % 12;
+     const lastMonthOrders = ordersData.data.filter((order: any) => {
+     const [day, month, year] = order.Order_Date.split(',')[0].split('/').map(Number);
+     const orderDate = new Date(year, month - 1, day);
+     return orderDate.getMonth() === lastMonth;
+    }).length;
+
+    const trendValue = lastMonthOrders === 0 ? 100 : Math.round(((currentMonthOrders - lastMonthOrders) / lastMonthOrders) * 100);
+    setOrdersTrend({ value: Math.abs(trendValue), isPositive: trendValue >= 0 });
+
+    
+    // تحديث نسبة الارباح مع للشهر السابق 
+    const currentMonthRevenue = revenueData.reduce((sum, r) => {
+    return r.month === monthName(currentMonth) ? sum + r.revenue : sum;
+    }, 0);
+
+    const lastMonthIndex = (currentMonth - 1 + 12) % 12;
+    const lastMonthRevenue = revenueData.reduce((sum, r) => {
+    return r.month === monthName(lastMonthIndex) ? sum + r.revenue : sum;
+    }, 0);
+
+    const revenueTrendValue = lastMonthRevenue === 0 ? 100 : Math.round(((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100);
+    setRevenueTrend({ value: Math.abs(revenueTrendValue), isPositive: revenueTrendValue >= 0 });
+
+
+
     } catch (error: any) {
       console.error('Dashboard fetch error:', error);
       toast.error('Failed to fetch dashboard data: ' + (error.response?.data?.message || error.message));
@@ -515,8 +396,9 @@ useEffect(() => {
         {/* Statistics Cards */}
       
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard title="Total Users" value={stats.totalUsers} icon={Users} description={`${stats.activeUsers} active users`} trend={{ value: 12, isPositive: true }} />
-          <StatCard title="Total Orders" value={stats.totalOrders} icon={ShoppingCart} description={`${stats.pendingOrders} pending orders`} trend={{ value: 8, isPositive: true }} />
+          <StatCard title="Total Users" value={stats.totalUsers} icon={Users} description={`${stats.activeUsers} active users`}   trend={usersTrend}
+ />
+          <StatCard title="Total Orders" value={stats.totalOrders} icon={ShoppingCart} description={`${stats.pendingOrders} pending orders`} trend={ordersTrend} />
            <div
       // onClick={() => navigate("/revenue",{ state: { revenueData: revenueData, orderTrends: orderTrends } })}
             onClick={() =>  navigate("/revenue", {
@@ -528,7 +410,7 @@ useEffect(() => {
       style={{ cursor: "pointer" }}
       className="stat-card"
     >
-          <StatCard title="Monthly Revenue" value={`₪${monthlyRevenue.toFixed(2)}`} icon={DollarSign} description="Revenue for current month" trend={{ value: 15, isPositive: true }}  />
+          <StatCard title="Monthly Revenue" value={`₪${monthlyRevenue.toFixed(2)}`} icon={DollarSign} description="Revenue for current month" trend={revenueTrend}  />
          </div>
           <StatCard title="Active Coupons" value={activeCoupons} icon={Tag} description="Currently available" />
 
@@ -586,4 +468,5 @@ useEffect(() => {
     </DashboardLayout>
   );
 }
+
 
