@@ -31,7 +31,7 @@
 //     pendingOrders: 0,
 //     activeUsers: 0,
 //   });
-  
+
 //   const [loading, setLoading] = useState(true);
 
 //   // Mock data for charts - in production, this would come from the API
@@ -97,10 +97,10 @@
 
 //   useEffect(() => {
 //     fetchDashboardData();
-    
+
 //     // Set up polling for real-time updates every 30 seconds
 //     const interval = setInterval(fetchDashboardData, 30000);
-    
+
 //     return () => clearInterval(interval);
 //   }, []);
 // const fetchDashboardData = async () => {
@@ -269,7 +269,7 @@
 
 
 
-              
+
 //             </CardContent>
 //           </Card>
 //         </div>
@@ -315,9 +315,32 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import EditMessage from '@/components/EditMessage';
-import Select, { components,StylesConfig, MultiValue } from 'react-select';
+import Select, { components, StylesConfig, MultiValue } from 'react-select';
 import axios from 'axios';
 import PromoCodes from '@/pages/PromoCodes';
+
+
+interface UserLite {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+}
+
+interface Message {
+  _id: string;
+  content: string;
+  type: 'order' | 'activity' | 'news';
+  recipients: UserLite[];
+  replies: {
+    sender: UserLite | string;
+    content: string;
+    createdAt: string;
+  }[];
+  createdAt: string;
+}
+
+
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -329,16 +352,20 @@ export default function Dashboard() {
     activeUsers: 0,
   });
   const [loading, setLoading] = useState(true);
-const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-// const [editingPromoId, setEditingPromoId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  // const [editingPromoId, setEditingPromoId] = useState<string | null>(null);
 
 
   // الرسائل
   const [usersList, setUsersList] = useState<any[]>([]);
   const [usersMap, setUsersMap] = useState<{ [key: string]: string }>({});
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [messageContent, setMessageContent] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [messageType, setMessageType] = useState<'order' | 'activity' | 'news'>('order');
+  const [isBroadcast, setIsBroadcast] = useState(false);
+
+
 
   // Mock data للcharts
   const orderTrendsData = [
@@ -369,7 +396,7 @@ const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const fetchDashboardData = async () => {
     try {
       // setLoading(true);
-          if (!stats.totalUsers) setLoading(true); //استخدمته لحل مشكلة التحديث
+      if (!stats.totalUsers) setLoading(true); //استخدمته لحل مشكلة التحديث
 
       const [usersData, ordersData, couponsData] = await Promise.all([
         usersAPI.getAll(),
@@ -406,29 +433,30 @@ const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const fetchUsersAndMessages = async () => {
       try {
         const token = localStorage.getItem('token');
-//         const payloadBase64 = token.split('.')[1];
-// const decoded = JSON.parse(atob(payloadBase64));
-// const adminId = decoded.id; // أو decoded.userId حسب اللي موجود في التوكن
+        //         const payloadBase64 = token.split('.')[1];
+        // const decoded = JSON.parse(atob(payloadBase64));
+        // const adminId = decoded.id; // أو decoded.userId حسب اللي موجود في التوكن
         // const [usersRes, messagesRes] = await Promise.all([
-                  const [usersRes] = await Promise.all([
-// هاي عشان اعمل فيتش لليوزر
-          axios.get('http://localhost:5000/api/users', { headers: { Authorization: `Bearer ${token}` }  // trick to bypass cache
-}),
-// axios.get(`http://localhost:5000/api/messages/user/${adminId}`, {
-//     headers: { Authorization: `Bearer ${token}` }
-//   })
-// هاي عشان اعمل فتش للمسج المرسلة من الادمن 
+        const [usersRes] = await Promise.all([
+          // هاي عشان اعمل فيتش لليوزر
+          axios.get('http://localhost:5000/api/users', {
+            headers: { Authorization: `Bearer ${token}` }  // trick to bypass cache
+          }),
+          // axios.get(`http://localhost:5000/api/messages/user/${adminId}`, {
+          //     headers: { Authorization: `Bearer ${token}` }
+          //   })
+          // هاي عشان اعمل فتش للمسج المرسلة من الادمن 
           // axios.get(`http://localhost:5000/api/messages/user/admin_id`, { headers: { Authorization: `Bearer ${token}` }})
         ]);
-// setMessages(messagesRes.data.messages || []);
+        // setMessages(messagesRes.data.messages || []);
 
         const usersArray = usersRes.data.data.users || [];
         setUsersList(usersArray);
         // هون طبعت النتيجة الي راجعة من API لحتى اتاكد انه رجعهم
-console.log(usersRes);
-// هون لحتى يجيب فقط المستخدمين , مش الكل مع الادمن
-const users = usersArray.filter((u: { role: string; }) => u.role === 'user');
-      setUsersList(users);
+        console.log(usersRes);
+        // هون لحتى يجيب فقط المستخدمين , مش الكل مع الادمن
+        const users = usersArray.filter((u: { role: string; }) => u.role === 'user');
+        setUsersList(users);
         const map: { [key: string]: string } = {};
         users.forEach((u: { _id: string | number; firstName: any; lastName: any; }) => {
           map[u._id] = `${u.firstName} ${u.lastName}`;
@@ -444,42 +472,53 @@ const users = usersArray.filter((u: { role: string; }) => u.role === 'user');
     fetchUsersAndMessages();
   }, []);
 
-useEffect(() => {
-  const fetchAdminMessages = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/messages/admin', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setMessages(res.data.messages || []);
-     console.log('Admin messages:', res.data.messages);
+  useEffect(() => {
+    const fetchAdminMessages = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/messages/admin', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setMessages(res.data.messages || []);
+        console.log('Admin messages:', res.data.messages);
 
-    } catch (err) {
-      console.error('Failed to fetch admin messages:', err);
-    }
-  };
+      } catch (err) {
+        console.error('Failed to fetch admin messages:', err);
+      }
+    };
 
-  fetchAdminMessages();
-}, []);
+    fetchAdminMessages();
+  }, []);
 
 
   // ======================= Send Message =======================
   const handleSendMessage = async (e: React.FormEvent) => {
-      e.preventDefault(); // يمنع الصفحة من الريفريش
+    e.preventDefault(); // يمنع الصفحة من الريفريش
 
-    if (!messageContent || selectedUsers.length === 0) {
-      alert('Content and recipients are required ');
+    if (!messageContent) {
+      alert('Message content is required');
       return;
     }
+
+    if (messageType !== 'news' && selectedUsers.length === 0) {
+      alert('Please select at least one user');
+      return;
+    }
+
 
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post('http://localhost:5000/api/messages/send', {
         content: messageContent,
         recipientIds: selectedUsers,
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+        type: messageType,
+        isBroadcast: messageType === 'news' && isBroadcast,
+      },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
       alert('Sent Successfully');
 
       setMessages(prev => [res.data.message, ...prev]);
@@ -500,45 +539,80 @@ useEffect(() => {
   //     </DashboardLayout>
   //   );
   // }
-const handleDeleteMessage = async (id: string) => {
-  const confirmDelete = window.confirm("Are you sure you want to delete this message?");
-  if (!confirmDelete) return;
+  const handleDeleteMessage = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this message?");
+    if (!confirmDelete) return;
 
-  try {
-    const token = localStorage.getItem('token');
-    await axios.delete(`http://localhost:5000/api/messages/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    // بعد الحذف، حدث الـ state بدون الريفريش
-    setMessages(prev => prev.filter(msg => msg._id !== id));
-    alert("Message deleted successfully");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to delete the message!");
-  }
-};
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/messages/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // بعد الحذف، حدث الـ state بدون الريفريش
+      setMessages(prev => prev.filter(msg => msg._id !== id));
+      alert("Message deleted successfully");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete the message!");
+    }
+  };
 
   return (
 
-    
-<>
-        {/* Messages Section */}
-        <Card className="border-2 mt-4">
-          <CardHeader>
-            <CardTitle>Sent Messages</CardTitle>
-            {/* <CardDescription>عرض جميع الرسائل التي تم ارسالها</CardDescription> */}
-          </CardHeader>
-          <CardContent>
-            {/* Form إرسال رسالة */}
-            <div className="mb-4">
-              <Textarea
-                placeholder="Write the message here"
-                value={messageContent}
-                onChange={e => setMessageContent(e.target.value)}
-              />
-              {/* <div className="border rounded p-2 max-h-40 overflow-y-auto"></div> */}
 
-  {/* {usersList.map(user => (
+    <>
+      {/* Messages Section */}
+      <Card className="border-2 mt-4">
+        <CardHeader>
+          <CardTitle>Sent Messages</CardTitle>
+          {/* <CardDescription>عرض جميع الرسائل التي تم ارسالها</CardDescription> */}
+        </CardHeader>
+        <CardContent>
+          {/* Form إرسال رسالة */}
+          <div className="mb-4">
+            <select
+              value={messageType}
+              onChange={(e) => {
+                const value = e.target.value as 'order' | 'activity' | 'news';
+                setMessageType(value);
+
+                if (value !== 'news') {
+                  setIsBroadcast(false);
+                }
+              }}
+              className="border rounded w-full p-2 mb-3"
+            >
+              <option value="order">Order</option>
+              <option value="activity">Activity</option>
+              <option value="news">News</option>
+            </select>
+            {messageType === 'news' && (
+              <div className="flex items-center gap-3 mb-3">
+                <Button
+                  type="button"
+                  variant={isBroadcast ? 'default' : 'outline'}
+                  onClick={() => {
+                    setIsBroadcast(!isBroadcast);
+                    if (!isBroadcast) {
+                      setSelectedUsers(usersList.map(u => u._id));
+                    } else {
+                      setSelectedUsers([]);
+                    }
+                  }}
+                >
+                  {isBroadcast ? 'Unselect All' : 'Select All Users'}
+                </Button>
+              </div>
+            )}
+
+            <Textarea
+              placeholder="Write the message here"
+              value={messageContent}
+              onChange={e => setMessageContent(e.target.value)}
+            />
+            {/* <div className="border rounded p-2 max-h-40 overflow-y-auto"></div> */}
+
+            {/* {usersList.map(user => (
     <label key={user._id} className="flex items-center mb-1">
       <input
         type="checkbox"
@@ -557,99 +631,100 @@ const handleDeleteMessage = async (id: string) => {
       {user.firstName} {user.lastName}
     </label>
   ))} */}
-  
-<Select
-  isMulti
-  options={usersList.map(user => ({
-    value: user._id,
-    label: `${user.firstName} ${user.lastName}`
-  }))}
-  value={selectedUsers.map(id => ({
-    value: id,
-    label: usersMap[id] || 'تحميل...'
-  }))}
-  onChange={(selectedOptions) => {
-    const ids = selectedOptions ? selectedOptions.map(opt => opt.value) : [];
-    setSelectedUsers(ids);
-  }}
-  placeholder="Search or select users ..."
-  isSearchable
-  isClearable
-  closeMenuOnSelect={false}
-  hideSelectedOptions={false}
-  noOptionsMessage={() => "No users found!"}
-  formatOptionLabel={({ label }) => (
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
-        {label.split(' ').map(n => n[0]).join('').toUpperCase()}
-      </div>
-      <span>{label}</span>
-    </div>
-  )}
-               
-  className="react-select-container"
-  classNamePrefix="react-select"
-  styles={{
-    control: (base) => ({
-      ...base,
-      minHeight: 40,
-      borderRadius: '12px',
-      border: '1px solid #e5e7eb',
-      padding: '8px',
-      boxShadow: 'none',
-      '&:hover': { borderColor: '#9ca3af' },
-    }),
-    valueContainer: (base) => ({
-      ...base,
-      padding: '8px',
-      gap: '8px',
-      flexWrap: 'wrap',
-    }),
-    multiValue: (base) => ({
-      ...base,
-      backgroundColor: '#f3f4f6',
-      borderRadius: '8px',
-      padding: '6px 10px',
-      fontSize: '15px',
-    }),
-    multiValueLabel: (base) => ({
-      ...base,
-      color: '#111827',
-      fontWeight: '500',
-    }),
-    multiValueRemove: (base) => ({
-      ...base,
-      cursor: 'pointer',
-      borderRadius: '0 8px 8px 0',
-      ':hover': {
-        backgroundColor: '#e5e7eb',
-        color: '#dc2626',
-      },
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: '#9ca3af',
-      fontSize: '16px',
-    }),
-    input: (base) => ({
-      ...base,
-      fontSize: '16px',
-    }),
-    menu: (base) => ({
-      ...base,
-      borderRadius: '12px',
-      marginTop: '8px',
-      zIndex: 9999,
-    }),
-    option: (base, { isFocused, isSelected }) => ({
-      ...base,
-      backgroundColor: isSelected ? '#111827' : isFocused ? '#f3f4f6' : 'white',
-      color: isSelected ? 'white' : '#111827',
-      ':active': { backgroundColor: '#111827' },
-    }),
-  }}
-/>
-              {/* <select
+
+            <Select
+              isMulti
+              isDisabled={messageType === 'news' && isBroadcast}
+              options={usersList.map(user => ({
+                value: user._id,
+                label: `${user.firstName} ${user.lastName}`
+              }))}
+              value={selectedUsers.map(id => ({
+                value: id,
+                label: usersMap[id] || 'تحميل...'
+              }))}
+              onChange={(selectedOptions) => {
+                const ids = selectedOptions ? selectedOptions.map(opt => opt.value) : [];
+                setSelectedUsers(ids);
+              }}
+              placeholder="Search or select users ..."
+              isSearchable
+              isClearable
+              closeMenuOnSelect={false}
+              hideSelectedOptions={false}
+              noOptionsMessage={() => "No users found!"}
+              formatOptionLabel={({ label }) => (
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
+                    {label.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </div>
+                  <span>{label}</span>
+                </div>
+              )}
+
+              className="react-select-container"
+              classNamePrefix="react-select"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  minHeight: 40,
+                  borderRadius: '12px',
+                  border: '1px solid #e5e7eb',
+                  padding: '8px',
+                  boxShadow: 'none',
+                  '&:hover': { borderColor: '#9ca3af' },
+                }),
+                valueContainer: (base) => ({
+                  ...base,
+                  padding: '8px',
+                  gap: '8px',
+                  flexWrap: 'wrap',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: '8px',
+                  padding: '6px 10px',
+                  fontSize: '15px',
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: '#111827',
+                  fontWeight: '500',
+                }),
+                multiValueRemove: (base) => ({
+                  ...base,
+                  cursor: 'pointer',
+                  borderRadius: '0 8px 8px 0',
+                  ':hover': {
+                    backgroundColor: '#e5e7eb',
+                    color: '#dc2626',
+                  },
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: '#9ca3af',
+                  fontSize: '16px',
+                }),
+                input: (base) => ({
+                  ...base,
+                  fontSize: '16px',
+                }),
+                menu: (base) => ({
+                  ...base,
+                  borderRadius: '12px',
+                  marginTop: '8px',
+                  zIndex: 9999,
+                }),
+                option: (base, { isFocused, isSelected }) => ({
+                  ...base,
+                  backgroundColor: isSelected ? '#111827' : isFocused ? '#f3f4f6' : 'white',
+                  color: isSelected ? 'white' : '#111827',
+                  ':active': { backgroundColor: '#111827' },
+                }),
+              }}
+            />
+            {/* <select
                 multiple
                 value={selectedUsers}
                 onChange={e => setSelectedUsers(Array.from(e.target.selectedOptions, option => option.value))}
@@ -663,19 +738,19 @@ const handleDeleteMessage = async (id: string) => {
               </select> */}
 
 
-              
-              <Button type="button" className="mt-2" onClick={handleSendMessage}>Send </Button>
-              
-            </div>
-                        <CardDescription>View all sent messages</CardDescription>
 
-{/* {messages.map(msg => (
+            <Button type="button" className="mt-2" onClick={handleSendMessage}>Send </Button>
+
+          </div>
+          <CardDescription>View all sent messages</CardDescription>
+
+          {/* {messages.map(msg => (
   <div key={msg._id} className="border p-2 mb-2 rounded">
     <p><strong>Content:</strong> {msg.content}</p>
     <p><strong>To:</strong> {msg.recipients.map((id: string) => usersMap[id] || id).join(', ')}</p> */}
-    
-    {/* زر فتح واجهة تعديل الرسالة */}
-    {/* <EditMessage
+
+          {/* زر فتح واجهة تعديل الرسالة */}
+          {/* <EditMessage
       message={msg}
       usersList={usersList}
       usersMap={usersMap}
@@ -701,110 +776,160 @@ const handleDeleteMessage = async (id: string) => {
   </div>
 ))} */}
 
-{messages.map(msg => (
-  
-  <div key={msg._id} className="border p-2 mb-2 rounded">
-    <p>
-      {/* <strong>Content:</strong> */}
-       {msg.content}</p>
-    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-4">
-                  <span className="flex items-center gap-1 mt-4">
-                    Date: {new Date(msg.createdAt).toLocaleString()}
+          {messages.map(msg => (
+
+            <div key={msg._id} className="border p-2 mb-2 rounded">
+              <p>
+                {/* <strong>Content:</strong> */}
+                {msg.content}</p>
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-4">
+                {/* Message Type Badge */}
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold
+      ${msg.type === 'order'
+                      ? 'bg-blue-100 text-blue-800'
+                      : msg.type === 'activity'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}
+                >
+                  {msg.type ? msg.type.toUpperCase() : 'NEWS'}
+                </span>
+
+                <span className="flex items-center gap-1">
+                  Date: {new Date(msg.createdAt).toLocaleString()}
+                </span>
+
+                <span className="font-semibold text-foreground">
+                  • To {msg.recipients.length} {msg.recipients.length === 1 ? 'user' : 'users'}
+                </span>
+              </div>
+
+
+
+              <div className="flex flex-wrap items-center gap-3 mt-3">
+                <span className="font-bold text-foreground">To:</span>
+
+                {msg.recipients.slice(0, 3).map(user => {
+                  const name = `${user.firstName} ${user.lastName}`;
+                  const firstInitial = user?.firstName?.[0]?.toUpperCase() || '?';
+                  const lastInitial = user?.lastName?.[0]?.toUpperCase() || '';
+
+                  const initials = firstInitial + lastInitial;
+
+
+                  return (
+                    <div
+                      key={user._id}
+                      className="flex items-center gap-2.5 bg-gray-100 px-3.5 py-2 rounded-full"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
+                        {initials}
+                      </div>
+                      <span className="text-sm font-medium">{name}</span>
+                    </div>
+                  );
+                })}
+
+
+                {/* عدد الباقين */}
+                {msg.recipients.length > 3 && (
+                  <span className="text-sm font-medium text-muted-foreground bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600">
+                    +{msg.recipients.length - 3} آخرين
                   </span>
+                )}
+              </div>
 
-                  {/* <span>•</span> */}
-                  <span className="text-black-700 font-semibold mt-4">
-                   • To {msg.recipients.length} {msg.recipients.length === 1 ? 'user' : 'users'}
-                  </span>
-                </div>
+              {/* استبدلت السطر الي تحت باللي فوق للديزاين */}
+              {/* <p><strong>To:</strong> {msg.recipients.map((id: string) => usersMap[id] || id).join(', ')}</p> */}
+              {/* <p><strong>Date:</strong> {new Date(msg.createdAt).toLocaleString()}</p> */}
+              <div className="flex gap-4 mt-6">
+                <Button type="button" onClick={() => setEditingMessageId(msg._id)}>Edit</Button>
+                <Button type="button" className="bg-red-800 hover:bg-red-900 text-white font-medium"
+                  onClick={() => handleDeleteMessage(msg._id)}>Delete</Button>
+              </div>
+
+              {editingMessageId === msg._id && (
+
+                <EditMessage
+
+                  message={msg}
+                  usersList={usersList.filter(u => u.role === 'user')}
+                  usersMap={usersMap}
+                  onClose={() => setEditingMessageId(null)}
+                  onSave={async (updatedMsg: { content: any; recipients: any; }) => {
+                    try {
+                      const token = localStorage.getItem('token');
+                      const res = await axios.put(
+                        `http://localhost:5000/api/messages/${msg._id}`,
+                        {
+                          content: updatedMsg.content,
+                          recipients: updatedMsg.recipients.map((u: any) =>
+                            typeof u === 'string' ? u : u._id
+                          )
+                        },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+
+                      setMessages(prev => prev.map(m => m._id === msg._id ? res.data.message : m));
+                      setEditingMessageId(null);
+                      console.log(updatedMsg)
+                      alert('Message updated successfully!');
+                    } catch (err) {
+                      console.error(err);
+                      alert('Failed to update message');
+                    }
+                  }}
+                />
+              )}
+
+              {/* ===== User Replies ===== */}
+              {msg.replies && msg.replies.map((reply, index) => {
+                const sender =
+                  typeof reply.sender === 'object'
+                    ? reply.sender
+                    : null;
+
+                const name = sender
+                  ? `${sender.firstName} ${sender.lastName}`
+                  : 'User';
+
+                const firstInitial = sender?.firstName?.[0]?.toUpperCase() || 'U';
+                const lastInitial = sender?.lastName?.[0]?.toUpperCase() || '';
+
+                const initials = firstInitial + lastInitial;
 
 
-<div className="flex flex-wrap items-center gap-3 mt-3">
-  <span className="font-bold text-foreground">To:</span>
+                return (
+                  <div key={index} className="flex gap-3 bg-gray-50 p-3 rounded-lg border">
+                    <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
+                      {initials}
+                    </div>
 
-  {msg.recipients.slice(0, 3).map((id: string) => {
-    const name = usersMap[id] || 'مستخدم مجهول';
-    const initials = name
-      .split(' ')
-      .map((n: string) => n[0])
-      .join('')
-      .toUpperCase();
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{name}</p>
+                      <p className="text-sm mt-1">{reply.content}</p>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(reply.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
 
-    return (
-      <div
-        key={id}
-        className="flex items-center gap-2.5 bg-gray-100 dark:bg-gray-800 px-3.5 py-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-      >
-        {/* الدائرة الرمادية الأنيقة */}
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
-          {initials}
-        </div>
-        <span className="text-sm font-medium text-foreground">{name}</span>
-      </div>
-    );
-  })}
 
-  {/* عدد الباقين */}
-  {msg.recipients.length > 3 && (
-    <span className="text-sm font-medium text-muted-foreground bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600">
-      +{msg.recipients.length - 3} آخرين
-    </span>
-  )}
-</div>
-
-{/* استبدلت السطر الي تحت باللي فوق للديزاين */}
-    {/* <p><strong>To:</strong> {msg.recipients.map((id: string) => usersMap[id] || id).join(', ')}</p> */}
-    {/* <p><strong>Date:</strong> {new Date(msg.createdAt).toLocaleString()}</p> */}
-<div className="flex gap-4 mt-6">
-    <Button type="button" onClick={() => setEditingMessageId(msg._id)}>Edit</Button>
-    <Button type="button" className="bg-red-800 hover:bg-red-900 text-white font-medium" 
-      onClick={() => handleDeleteMessage(msg._id)}>Delete</Button>
-</div>
-
-    {editingMessageId === msg._id && (
-      
-      <EditMessage
-      
-        message={msg}
-        usersList={usersList.filter(u => u.role === 'user')}
-        usersMap={usersMap} 
-        onClose={() => setEditingMessageId(null)}
-        onSave={async (updatedMsg: { content: any; recipients: any; }) => {
-          try {
-            const token = localStorage.getItem('token');
-            const res = await axios.put(
-              `http://localhost:5000/api/messages/${msg._id}`,
-              {
-                content: updatedMsg.content,
-                recipients: updatedMsg.recipients,
-              },
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            setMessages(prev => prev.map(m => m._id === msg._id ? res.data.message : m));
-            setEditingMessageId(null);
-            console.log(updatedMsg)
-            alert('Message updated successfully!');
-          } catch (err) {
-            console.error(err);
-            alert('Failed to update message');
-          }
-        }}
-      />
-    )}
-  
-{/* {messages.map(msg => (
+              {/* {messages.map(msg => (
   <div key={msg._id} className="border p-2 mb-2 rounded">
     <p><strong>Content:</strong> {msg.content}</p>
     <p><strong>To:</strong> {msg.recipients.map((id: string) => usersMap[id] || id).join(', ')}</p> */}
-    
-    {/* زر Edit يظهر للأدمن */}
-    {/* <Button size="sm" onClick={() => setEditingMessageId(msg._id)}>
+
+              {/* زر Edit يظهر للأدمن */}
+              {/* <Button size="sm" onClick={() => setEditingMessageId(msg._id)}>
       Edit
     </Button> */}
 
-    {/* واجهة تعديل الرسالة تظهر فقط إذا كانت هذه الرسالة قيد التعديل */}
-    {/* {editingMessageId === msg._id && (
+              {/* واجهة تعديل الرسالة تظهر فقط إذا كانت هذه الرسالة قيد التعديل */}
+              {/* {editingMessageId === msg._id && (
       <EditMessage
         message={msg}
         usersList={usersList}
@@ -830,12 +955,12 @@ const handleDeleteMessage = async (id: string) => {
         }}
       />
     )} */}
-  </div>
-))}
+            </div>
+          ))}
 
 
-            {/* عرض الرسائل */}
-            {/* {messages.map(msg => (
+          {/* عرض الرسائل */}
+          {/* {messages.map(msg => (
             
               <div key={msg._id} className="border p-2 mb-2 rounded">
                 
@@ -844,8 +969,8 @@ const handleDeleteMessage = async (id: string) => {
                 <p><strong>Read By:</strong> {msg.readBy.length > 0 ? msg.readBy.map((id: string) => usersMap[id] || id).join(', ') : 'No one yet'}</p>
                 <p><strong>Date:</strong> {new Date(msg.createdAt).toLocaleString()}</p> */}
 
-{/* +++++++++++++++++++++ لعرض الردود*/}
-{/* {msg.replies && msg.replies.length > 0 && (
+          {/* +++++++++++++++++++++ لعرض الردود*/}
+          {/* {msg.replies && msg.replies.length > 0 && (
   <div className="mt-2 p-2 bg-gray-100 rounded">
     <strong>ردود المستخدم:</strong>
     {msg.replies.map((reply: any, index: number) => (
@@ -857,15 +982,11 @@ const handleDeleteMessage = async (id: string) => {
     ))}
   </div>
 )}
-
-
               </div>
             ))} */}
-          </CardContent>
-        </Card>
-      
-</>
+        </CardContent>
+      </Card>
 
-
+    </>
   );
 }
