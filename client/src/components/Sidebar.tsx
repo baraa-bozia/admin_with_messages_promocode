@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { APP_LOGO } from '@/const';
-import { 
-  LayoutDashboard, 
-  Users, 
-  ShoppingCart, 
-  Tag, 
+import {
+  LayoutDashboard,
+  Users,
+  ShoppingCart,
+  Tag,
   LogOut,
   Image,
   Menu,
@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import NotificationBell from '@/components/NotificationBell';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -25,9 +26,6 @@ const navigation = [
   { name: 'Promo Codes', href: '/promo', icon: Image },
   { name: 'Shein Products', href: '/shein-products', icon: Image },
   { name: 'Add New Product', href: '/products', icon: Image },
-
-
-  
 ];
 
 export default function Sidebar() {
@@ -42,19 +40,22 @@ export default function Sidebar() {
 
   const SidebarContent = () => (
     <>
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
-        <img src={APP_LOGO} alt="Souq Jerzem" className="h-10 w-10" />
-        <div>
-          <h1 className="text-lg font-bold text-foreground">Souq Jerzem</h1>
-          <p className="text-xs text-muted-foreground">Admin Dashboard</p>
+      <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+        <div className="flex items-center gap-3">
+          <img src={APP_LOGO} alt="Souq Jerzem" className="h-10 w-10" />
+          <div>
+            <h1 className="text-lg font-bold text-foreground">Souq Jerzem</h1>
+            <p className="text-xs text-muted-foreground">Admin Dashboard</p>
+          </div>
         </div>
+        <NotificationBell />
       </div>
 
       <nav className="flex-1 px-4 py-6 space-y-1">
         {navigation.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.href;
-          
+
           return (
             <Link
               key={item.name}
@@ -103,7 +104,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile menu button */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src={APP_LOGO} alt="Souq Jerzem" className="h-8 w-8" />
@@ -118,7 +118,6 @@ export default function Sidebar() {
         </Button>
       </div>
 
-      {/* Mobile sidebar overlay */}
       {mobileMenuOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40 bg-black/50"
@@ -126,7 +125,6 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Mobile sidebar */}
       <aside
         className={cn(
           'lg:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-background border-r border-border flex flex-col transition-transform duration-300',
@@ -136,7 +134,6 @@ export default function Sidebar() {
         <SidebarContent />
       </aside>
 
-      {/* Desktop sidebar */}
       <aside className="hidden lg:flex fixed top-0 left-0 bottom-0 w-72 bg-background border-r border-border flex-col">
         <SidebarContent />
       </aside>
